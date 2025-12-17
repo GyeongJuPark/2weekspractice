@@ -4,17 +4,35 @@
 
 {% block main_area %}
     <div class="card mb-4">
-        <div class="card-header">
-            {% if post.category %}
-                <span class="badge bg-secondary">{{ post.category }}</span>
-            {% else %}
-                <span class="badge bg-secondary">미분류</span>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                {% if post.category %}
+                    <span class="badge bg-secondary">{{ post.category }}</span>
+                {% else %}
+                    <span class="badge bg-secondary">미분류</span>
+                {% endif %}
+            </div>
+            {% if user.is_authenticated and user == post.author %}
+                <div>
+                    <a href="{% url 'post_update' post.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> 수정
+                    </a>
+                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash-alt"></i> 삭제
+                    </a>
+                </div>
             {% endif %}
         </div>
         <div class="card-body">
             <h1 class="card-title">{{ post.title }}</h1>
             <p class="text-muted">
-                Posted on {{ post.created_at }} by {{ post.author | upper }}
+                <i class="fas fa-calendar-alt"></i> {{ post.created_at|date:"Y년 n월 j일 H:i" }}
+                <span class="mx-2">|</span>
+                <i class="fas fa-user"></i> {{ post.author|default:"익명" }}
+                {% if post.updated_at != post.created_at %}
+                    <span class="mx-2">|</span>
+                    <i class="fas fa-sync-alt"></i> 수정됨: {{ post.updated_at|date:"Y년 n월 j일 H:i" }}
+                {% endif %}
             </p>
             <hr>
             <div class="card-text">
@@ -30,5 +48,62 @@
         </div>
     </div>
 
-    <a href="/blog/" class="btn btn-secondary">&larr; Back to Blog</a>
+    <!-- 댓글 섹션 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-comments"></i> 댓글 ({{ post.comments.count }})</h5>
+        </div>
+        <div class="card-body">
+            <!-- 댓글 작성 폼 -->
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_comment' post.pk %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="d-flex">
+                        <div class="flex-grow-1 me-2">
+                            {{ comment_form.content }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> 작성
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle"></i>
+                    댓글을 작성하려면 <a href="/admin/login/?next={{ request.path }}">로그인</a>이 필요합니다.
+                </div>
+            {% endif %}
+
+            <!-- 댓글 목록 -->
+            {% for comment in post.comments.all %}
+                <div class="d-flex mb-3 pb-3 border-bottom">
+                    <div class="flex-shrink-0">
+                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>{{ comment.author }}</strong>
+                            <div>
+                                <small class="text-muted">{{ comment.created_at|date:"Y.n.j H:i" }}</small>
+                                {% if user == comment.author %}
+                                    <a href="{% url 'delete_comment' post.pk comment.pk %}" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('댓글을 삭제하시겠습니까?');">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-0 mt-1">{{ comment.content|linebreaks }}</p>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted text-center">
+                    <i class="fas fa-comment-slash"></i> 아직 댓글이 없습니다. 첫 댓글을 작성해보세요!
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <a href="{% url 'post_list' %}" class="btn btn-secondary">&larr; 목록으로</a>
 {% endblock %}

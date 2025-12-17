@@ -24,14 +24,18 @@
             <div class="col-md-4 col-lg-3">
                 <!-- Search Widget -->
                 <div class="card my-4">
-                    <h5 class="card-header">Search</h5>
+                    <h5 class="card-header"><i class="fas fa-search"></i> 검색</h5>
                     <div class="card-body">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for...">
-                            <span class="input-group-btn">
-                                <button class="btn btn-secondary" type="button">Go!</button>
-                            </span>
-                        </div>
+                        <form action="{% url 'search' %}" method="get">
+                            <div class="input-group">
+                                <input type="text" name="q" class="form-control" placeholder="검색어를 입력하세요..." value="{{ search_query }}">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-secondary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
